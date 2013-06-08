@@ -8,7 +8,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
-//use Symfony\Bundle\FrameworkBundle\Util\Mustache;
 
 use ZendService\Twitter\Twitter as ZendTwitter;
 
@@ -52,6 +51,64 @@ EOT
     {
         $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
 
+        $search = $this->getTwitterService();
+
+        $results = $search->search->tweets('#linktuesday', array('lang' => 'en'));
+        $results = json_decode($results->getRawResponse());
+
+        foreach($results->statuses as $result)
+        {
+            if (isset($result->entities->urls[0]))
+            {
+                $uri = $result->entities->urls[0]->url;
+                $full_uri = $result->entities->urls[0]->expanded_url;
+
+                if (!empty($uri))
+                {
+                    $link = new Link();
+                    $link->setUri($uri);
+                    $link->setFullUri($full_uri);
+
+                    $existing = $em->getRepository('IngewikkeldLinkTuesdayBundle:Link')->getByFullUri($link->getFullUri());
+                    if ($existing)
+                    {
+                        $link = $existing;
+                    }
+
+                    if ($link->getId() < 1)
+                    {
+                        $em->persist($link);
+                    }
+
+                    $tweetDate = new \DateTime($result->created_at);
+
+                    $existingTweet = $em->getRepository('IngewikkeldLinkTuesdayBundle:Tweet')->findOneBy(array(
+                        'date' => $tweetDate,
+                        'user' => $result->user->screen_name,
+                        'content' => $result->text,
+                    ));
+
+                    if (!$existingTweet)
+                    {
+                        $tweet = new Tweet();
+                        $tweet->setContent($result->text);
+                        $tweet->setLink($link);
+                        $tweet->setDate(new \DateTime($result->created_at));
+                        $tweet->setProfileImage($result->user->profile_image_url);
+                        $tweet->setUser($result->user->screen_name);
+                        $tweet->setUri('test');
+
+                        $em->persist($tweet);
+                    }
+
+                    $em->flush();
+                }
+            }
+        }
+    }
+
+    private function getTwitterService()
+    {
         $search = new ZendTwitter(array(
             'accessToken' => array(
                 'token' => $this->getContainer()->getParameter('twitter_token'),
@@ -74,61 +131,7 @@ EOT
 
         $search->account->verifyCredentials();
 
-        $results = $search->search->tweets('#linktuesday', array('lang' => 'en'));
-        $results = json_decode($results->getRawResponse());
-
-        foreach($results->statuses as $result)
-        {
-            $uri = '';
-            $parts = explode(' ', $result->text);
-            foreach($parts as $part)
-            {
-                if (substr($part, 0, 7) == 'http://')
-                {
-                    $uri = $part;
-                }
-            }
-
-            if (!empty($uri))
-            {
-
-                $link = new Link();
-                $link->setUri($uri);
-
-                $existing = $em->getRepository('IngewikkeldLinkTuesdayBundle:Link')->getByFullUri($link->getFullUri());
-                if ($existing)
-                {
-                    $link = $existing;
-                }
-
-                if ($link->getId() < 1)
-                {
-                    $em->persist($link);
-                }
-
-                $tweetDate = new \DateTime($result->created_at);
-
-                $existingTweet = $em->getRepository('IngewikkeldLinkTuesdayBundle:Tweet')->findOneBy(array(
-                    'date' => $tweetDate,
-                    'user' => $result->user->screen_name,
-                    'content' => $result->text,
-                ));
-
-                if (!$existingTweet)
-                {
-                    $tweet = new Tweet();
-                    $tweet->setContent($result->text);
-                    $tweet->setLink($link);
-                    $tweet->setDate(new \DateTime($result->created_at));
-                    $tweet->setProfileImage($result->user->profile_image_url);
-                    $tweet->setUser($result->user->screen_name);
-                    $tweet->setUri('test');
-
-                    $em->persist($tweet);
-                }
-                
-                $em->flush();
-            }
-        }
+        return $search;
     }
+
 }

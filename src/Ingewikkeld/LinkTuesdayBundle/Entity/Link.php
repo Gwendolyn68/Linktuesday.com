@@ -89,7 +89,6 @@ class Link
     public function setUri($uri)
     {
         $this->uri = trim($uri);
-        $this->followUri();
     }
 
     public function getFullUri()
@@ -100,6 +99,7 @@ class Link
     public function setFullUri($full_uri)
     {
         $this->full_uri = $full_uri;
+        $this->followUri();
     }
 
     public function getTitle()
@@ -127,7 +127,7 @@ class Link
     {
         $browser = new Browser();
         try {
-            $response = $browser->get($this->getUri());
+            $response = $browser->get($this->getFullUri());
 
             $dom = $response->toDomDocument();
             $sxml = simplexml_import_dom($dom);
@@ -136,15 +136,6 @@ class Link
         } catch(\Exception $e) {
             $titles = array();
         }
-
-        $locations = $response->getHeader('Location');
-        $locationparts = explode("\n", $locations);
-        $full_uri = $locationparts[count($locationparts)-1];
-        if (empty($full_uri)) {
-            $full_uri = $this->getUri();
-        }
-
-        $this->setFullUri(trim($full_uri));
 
         if (count($titles) > 0)
         {
