@@ -2,51 +2,53 @@
 
 namespace Ingewikkeld\LinkTuesdayBundle\Entity;
 
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Buzz\Browser;
 
 use Ingewikkeld\LinkTuesdayBundle\Entity\Tweet;
 
 /**
- * @orm:Entity(repositoryClass="Ingewikkeld\LinkTuesdayBundle\Entity\LinkRepository")
+ * @ORM\Table(name="Link")
+ * @ORM\Entity(repositoryClass="Ingewikkeld\LinkTuesdayBundle\Entity\LinkRepository")
  */
 class Link
 {
     /**
      * @var integer
      *
-     * @orm:Id
-     * @orm:Column(type="integer")
-     * @orm:GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected $id;
 
     /**
      * @var string
      *
-     * @orm:Column(type="string", length="255")
+     * @ORM\Column(type="string", length=255)
      */
     protected $uri;
 
     /**
      * @var string
      *
-     * @orm:Column(type="string", length="255")
+     * @ORM\Column(type="string", length=255)
      */
     public $full_uri;
 
     /**
      * @var string
      *
-     * @orm:Column(type="string", length="255")
+     * @ORM\Column(type="string", length=255)
      */
     protected $title;
 
     /**
      * @var ArrayCollection
      *
-     * @orm:OneToMany(targetEntity="Tweet", mappedBy="link")
-     * @orm:OrderBy({"date" = "ASC"})
+     * @ORM\OneToMany(targetEntity="Tweet", mappedBy="link")
+     * @ORM\OrderBy({"date" = "ASC"})
      */
     protected $tweets;
 
@@ -138,6 +140,9 @@ class Link
         $locations = $response->getHeader('Location');
         $locationparts = explode("\n", $locations);
         $full_uri = $locationparts[count($locationparts)-1];
+        if (empty($full_uri)) {
+            $full_uri = $this->getUri();
+        }
 
         $this->setFullUri(trim($full_uri));
 
@@ -161,6 +166,8 @@ class Link
     {
         $fullUri = $this->getFullUri();
         $parts = explode('/', $fullUri);
-        return $parts[2];
+        if (isset($parts[2])) {
+            return $parts[2];
+        }
     }
 }

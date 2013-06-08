@@ -2,15 +2,15 @@
 
 namespace Ingewikkeld\LinkTuesdayBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand as Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
-use Symfony\Bundle\FrameworkBundle\Util\Mustache;
+//use Symfony\Bundle\FrameworkBundle\Util\Mustache;
 
-use Zend\Service\Twitter\Search;
+use ZendService\Twitter\Twitter as ZendTwitter;
 
 use Ingewikkeld\LinkTuesdayBundle\Entity\Link;
 use Ingewikkeld\LinkTuesdayBundle\Entity\Tweet;
@@ -22,6 +22,8 @@ use Ingewikkeld\LinkTuesdayBundle\Entity\Tweet;
  */
 class FetchTweetCommand extends Command
 {
+    protected $container;
+
     /**
      * @see Command
      */
@@ -48,11 +50,34 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $em = $this->container->get('doctrine.orm.default_entity_manager');
-        $search = new Search();
+        $em = $this->getContainer()->get('doctrine.orm.default_entity_manager');
 
-        $results = $search->search('#linktuesday', array('lang' => 'en'));
-        foreach($results->results as $result)
+        $search = new ZendTwitter(array(
+            'accessToken' => array(
+                'token' => $this->getContainer()->getParameter('twitter_token'),
+                'secret' => $this->getContainer()->getParameter('twitter_secret'),
+            ),
+            'oauth_options' => array(
+                'consumerKey' => $this->getContainer()->getParameter('twitter_consumerkey'),
+                'consumerSecret' => $this->getContainer()->getParameter('twitter_consumersecret'),
+            ),
+            'http_client_options' => array(
+                'adapter' => 'Zend\Http\Client\Adapter\Curl',
+            ),
+        ));
+
+        $curl = new \Zend\Http\Client\Adapter\Curl();
+        $curl->setCurlOption(CURLOPT_SSL_VERIFYHOST, false);
+        $curl->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
+
+        $search->getHttpClient()->setAdapter($curl);
+
+        $search->account->verifyCredentials();
+
+        $results = $search->search->tweets('#linktuesday', array('lang' => 'en'));
+        $results = json_decode($results->getRawResponse());
+
+        foreach($results->statuses as $result)
         {
             $uri = '';
             $parts = explode(' ', $result->text);
@@ -84,8 +109,8 @@ EOT
                 $tweetDate = new \DateTime($result->created_at);
 
                 $existingTweet = $em->getRepository('IngewikkeldLinkTuesdayBundle:Tweet')->findOneBy(array(
-                    'date' => $tweetDate->format('Y-m-d G:i:s'),
-                    'user' => $result->from_user,
+                    'date' => $tweetDate,
+                    'user' => $result->user->screen_name,
                     'content' => $result->text,
                 ));
 
@@ -95,8 +120,8 @@ EOT
                     $tweet->setContent($result->text);
                     $tweet->setLink($link);
                     $tweet->setDate(new \DateTime($result->created_at));
-                    $tweet->setProfileImage($result->profile_image_url);
-                    $tweet->setUser($result->from_user);
+                    $tweet->setProfileImage($result->user->profile_image_url);
+                    $tweet->setUser($result->user->screen_name);
                     $tweet->setUri('test');
 
                     $em->persist($tweet);
