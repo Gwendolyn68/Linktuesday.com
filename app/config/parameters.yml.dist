@@ -14,7 +14,7 @@ parameters:
     locale:            en
     secret:            ThisTokenIsNotSoSecretChangeIt
 
-    twitter_token: ****
-    twitter_secret: ****
-    twitter_consumerkey: ****
-    twitter_consumersecret: ****
+    twitter_token: ~
+    twitter_secret: ~
+    twitter_consumerkey: ~
+    twitter_consumersecret: ~
