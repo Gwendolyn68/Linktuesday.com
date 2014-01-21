@@ -6,8 +6,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Buzz\Browser;
 
-use Ingewikkeld\LinkTuesdayBundle\Entity\Tweet;
-
 /**
  * @ORM\Table(name="Link")
  * @ORM\Entity(repositoryClass="Ingewikkeld\LinkTuesdayBundle\Entity\LinkRepository")
@@ -35,7 +33,7 @@ class Link
      *
      * @ORM\Column(type="string", length=255)
      */
-    public $full_uri;
+    protected $full_uri;
 
     /**
      * @var string
@@ -47,7 +45,7 @@ class Link
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Tweet", mappedBy="link")
+     * @ORM\OneToMany(targetEntity="\Ingewikkeld\LinkTuesdayBundle\Entity\Tweet", mappedBy="link")
      * @ORM\OrderBy({"date" = "ASC"})
      */
     protected $tweets;
