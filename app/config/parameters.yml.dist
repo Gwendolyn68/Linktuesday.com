@@ -14,6 +14,9 @@ parameters:
     locale:            en
     secret:            ijgbselrigbaelgrjabglrhgbalrg
 
+    session_name:      lt-session
+    session_savepath:  /tmp/lt-sessions
+
     twitter_token: ~
     twitter_secret: ~
     twitter_consumerkey: ~
