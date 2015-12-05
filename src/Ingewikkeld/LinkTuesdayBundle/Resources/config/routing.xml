@@ -6,4 +6,7 @@
     <route id="current" pattern="/">
         <default key="_controller">LinkTuesdayBundle:Link:index</default>
     </route>
+    <route id="current" pattern="/search">
+        <default key="_controller">LinkTuesdayBundle:Link:search</default>
+    </route>
 </routes>

@@ -26,6 +26,20 @@ class LinkController extends Controller
     }
 
     /**
+     * @Route("/search", name="lt_search")
+     * @Template()
+     */
+    public function searchAction()
+    {
+        $em = $this->get('doctrine.orm.default_entity_manager');
+
+        return array(
+            'results' => $em->getRepository('IngewikkeldLinkTuesdayBundle:Tweet')->search($this->getRequest()->get('term')),
+            'term' => $this->getRequest()->get('term')
+        );
+    }
+
+    /**
      * @Route("/feed", name="lt_feed")
      * @Method({"GET"})
      * @Template()
