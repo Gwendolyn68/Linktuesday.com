@@ -7,7 +7,7 @@ use Ingewikkeld\LinkTuesdayBundle\Entity\Link;
 
 /**
  * @ORM\Table(name="Tweet")
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Ingewikkeld\LinkTuesdayBundle\Entity\TweetRepository")
  */
 class Tweet
 {
