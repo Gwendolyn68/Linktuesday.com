@@ -5,3 +5,16 @@ services:
   ## CONTROLLERS ##
   home_controller:
     class: 'Controller\HomeController'
+    arguments:
+      - '@twig'
+
+  ## SUPPORTING CODE
+  twig_loader:
+    class: 'Twig_Loader_Filesystem'
+    arguments:
+      - '%template_location%'
+
+  twig:
+    class: 'Twig_Environment'
+    arguments:
+      - '@twig_loader'

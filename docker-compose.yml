@@ -5,3 +5,12 @@ www:
   ports:
     - "8010:80"
 
+database:
+  image: mysql
+  environment:
+    MYSQL_DATABASE: linktuesday
+    MYSQL_ROOT_PASSWORD: password
+  volumes:
+    - /var/lib/mysql
+  ports:
+    - "3306:3306"

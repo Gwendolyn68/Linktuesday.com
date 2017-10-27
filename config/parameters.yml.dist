@@ -1,1 +1,2 @@
 parameters:
+  template_location: '../views'
