@@ -1,0 +1,7 @@
+www:
+  build: .
+  volumes:
+    - .:/var/www
+  ports:
+    - "8010:80"
+

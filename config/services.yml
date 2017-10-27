@@ -1,0 +1,7 @@
+imports:
+  - { resource: parameters.yml }
+
+services:
+  ## CONTROLLERS ##
+  home_controller:
+    class: 'Controller\HomeController'
