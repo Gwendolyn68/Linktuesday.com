@@ -1,1 +1,6 @@
-LINKTUESDAY YAY!
+{% for link in recentLinks %}
+    {{ link.title }} <br/>
+    {% for tweet in link.tweets %}
+        <li> {{ tweet.content }} </li>
+    {% endfor %}
+{% endfor %}

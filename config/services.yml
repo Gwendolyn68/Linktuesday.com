@@ -7,6 +7,19 @@ services:
     class: 'Controller\HomeController'
     arguments:
       - '@twig'
+      - '@link_service' 
+
+  ## SERVICES ##
+  link_service:
+    class: 'Service\Link'
+    arguments:
+      - '@database'
+      - '@tweet_service'
+
+  tweet_service:
+    class: 'Service\Tweet'
+    arguments:
+      - '@database'
 
   ## SUPPORTING CODE
   twig_loader:
@@ -18,3 +31,19 @@ services:
     class: 'Twig_Environment'
     arguments:
       - '@twig_loader'
+      - '%twig.config%'
+    calls:
+      - ['addExtension', ['@twig_debug']]
+
+  twig_debug:
+    class: 'Twig_Extension_Debug'
+
+
+  database:
+    class: 'mysqli'
+    arguments:
+      - '%dbhost%'
+      - '%dbuser%'
+      - '%dbpassword%'
+      - '%database%'
+
